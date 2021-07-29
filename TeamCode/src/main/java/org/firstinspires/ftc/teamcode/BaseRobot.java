@@ -6,16 +6,20 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-//import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.I2cAddr;
+import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
+import org.firstinspires.ftc.teamcode.PixyWorking.PixyCam;
+
+//Created by Chun on 1/26/19 for 10023. Adapted by Ben Co 2021.
+
 
 public class BaseRobot extends OpMode {
-
     public DcMotor leftBackDriveMotor, rightBackDriveMotor, leftFrontDriveMotor, rightFrontDriveMotor, armLiftMotor; //armLiftMotor2, armClampMotor;
-    public Servo right_servo, left_servo;
-//    public ColorSensor colorBlock;
+//    public Servo right_servo, left_servo;
     public ElapsedTime timer = new ElapsedTime();
-    //Created by Chun on 1/26/19 for 10023. Adapted by Team 13981.
-
+    PixyCam pixyCam;
 
     @Override
     public void init() {
@@ -23,12 +27,14 @@ public class BaseRobot extends OpMode {
         rightBackDriveMotor = hardwareMap.get(DcMotor.class, "rightBackDriveMotor");
         leftFrontDriveMotor = hardwareMap.get(DcMotor.class, "leftFrontDriveMotor");
         rightFrontDriveMotor = hardwareMap.get(DcMotor.class, "rightFrontDriveMotor");
-        armLiftMotor = hardwareMap.get(DcMotor.class, "armLiftMotor");
+        pixyCam = hardwareMap.get(PixyCam.class, "pixycam");
+
+//        armLiftMotor = hardwareMap.get(DcMotor.class, "armLiftMotor");
         /*armLiftMotor2 = hardwareMap.get(DcMotor.class, "armLiftMotor2");
         armClampMotor = hardwareMap.get(DcMotor.class, "armClampMotor");*/
 //        colorBlock = hardwareMap.get(ColorSensor.class, "colorSensorBlock");
-        right_servo = hardwareMap.get(Servo.class,"right_servo");
-        left_servo= hardwareMap.get(Servo.class,"left_servo");
+//        right_servo = hardwareMap.get(Servo.class,"right_servo");
+//        left_servo= hardwareMap.get(Servo.class,"left_servo");
     }
 
 
@@ -36,7 +42,7 @@ public class BaseRobot extends OpMode {
     public void start() {
         timer.reset();
         reset_drive_encoders();
-        reset_armLiftMotor_encoders();
+//        reset_armLiftMotor_encoders();
 //        reset_armLiftMotor2_encoders();
 //        colorBlock.enableLed(true);
     }
@@ -44,28 +50,28 @@ public class BaseRobot extends OpMode {
     public void stop() {
         timer.reset();
         reset_drive_encoders();
-        reset_armLiftMotor_encoders();
+//        reset_armLiftMotor_encoders();
 //        reset_armLiftMotor2_encoders();
     }
 
     @Override
     public void loop() {
-
         telemetry.addData("D00 Left Front Drive Motor Enc: ", get_left_front_drive_motor_enc());
         telemetry.addData("D01 Right Front Drive Motor Enc: ", get_right_front_drive_motor_enc());
         telemetry.addData("D02 Left Back Drive Motor Enc: ", get_left_back_drive_motor_enc());
         telemetry.addData("D03 Right Back Drive Motor Enc: ", get_right_back_drive_motor_enc());
 
-        telemetry.addData("D04 Arm Lift Motor Enc: ", get_armLiftMotor_enc());
+//
+//        telemetry.addData("D04 Arm Lift Motor Enc: ", get_armLiftMotor_enc());
 //        telemetry.addData("D05 Arm Lift Motor 2 Enc: ", get_armLiftMotor2_enc());
 //        telemetry.addData("D010 Arm Clamp Motor Enc: ", get_armClampMotor_enc());
 
     }
 
-    public void setArmLiftMotor(double power) {
-        double speed = Range.clip(power, -1, 1);
-        armLiftMotor.setPower(speed);
-    }
+//    public void setArmLiftMotor(double power) {
+//        double speed = Range.clip(power, -1, 1);
+//        armLiftMotor.setPower(speed);
+//    }
 /*
     public void setArmLiftMotor2(double power) {
         double speed = Range.clip(power, -1, 1);
@@ -79,38 +85,38 @@ public class BaseRobot extends OpMode {
 
     }*/
 
-    public boolean checkBlackColor(int red, int blue) {
-        return blue > (3.0/4)*red;
-    }
+//    public boolean checkBlackColor(int red, int blue) {
+//        return blue > (3.0/4)*red;
+//    }
 
-    public boolean checkGreenColor(int green, int blue, int red) {
-        if (green > blue + red){
-            return true;
-        } else return false;
-    }
+//    public boolean checkGreenColor(int green, int blue, int red) {
+//        if (green > blue + red){
+//            return true;
+//        } else return false;
+//    }
 
-    public boolean checkBlueColor(int green, int blue, int red) {
-        if (blue > green + red){
-            return true;
-        } else return false;
-    }
+//    public boolean checkBlueColor(int green, int blue, int red) {
+//        if (blue > green + red){
+//            return true;
+//        } else return false;
+//    }
 
-    public boolean checkRedColor(int green, int blue, int red) {
-        if (red > blue + green){
-            return true;
-        } else return false;
-    }
+//    public boolean checkRedColor(int green, int blue, int red) {
+//        if (red > blue + green){
+//            return true;
+//        } else return false;
+//    }
 
     public boolean auto_drive(double power, double inches) {
         double TARGET_ENC = ConstantVariables.K_PPIN_DRIVE * inches;
         telemetry.addData("Target_enc: ", TARGET_ENC);
         double left_speed = -power;
         double right_speed = power;
-        /*double error = -get_left_front_drive_motor_enc() - get_right_front_drive_motor_enc();
+        double error = -get_left_front_drive_motor_enc() - get_right_front_drive_motor_enc();
 
         error /= ConstantVariables.K_DRIVE_ERROR_P;
         left_speed += error;
-        right_speed -= error;*/
+        right_speed -= error;
 
         left_speed = Range.clip(left_speed, -1, 1);
         right_speed = Range.clip(right_speed, -1, 1);
@@ -155,7 +161,7 @@ public class BaseRobot extends OpMode {
         }
     }
 
-    //positive for right, negative for left
+//    positive for right, negative for left
     public boolean auto_mecanum(double power, double inches) {
         double TARGET_ENC = ConstantVariables.K_PPIN_DRIVE * inches;
         telemetry.addData("Target_enc: ", TARGET_ENC);
@@ -170,7 +176,7 @@ public class BaseRobot extends OpMode {
         rightFrontDriveMotor.setPower(rightFrontPower);
         rightBackDriveMotor.setPower(rightBackPower);
 
-        // once you have reached destination, kill motors and return true
+//         once you have reached destination, kill motors and return true
         if (Math.abs(get_right_front_drive_motor_enc()) >= TARGET_ENC) {
             leftFrontDriveMotor.setPower(0);
             leftBackDriveMotor.setPower(0);
@@ -196,7 +202,7 @@ public class BaseRobot extends OpMode {
         rightBackDriveMotor.setPower(rightBackPower);
     }
 
-    /*public void tank_drive(double leftPwr, double rightPwr) {
+    public void tank_drive(double leftPwr, double rightPwr) {
         double leftPower = Range.clip(leftPwr, -1.0, 1.0);
         double rightPower = Range.clip(rightPwr, -1.0, 1.0);
 
@@ -205,16 +211,16 @@ public class BaseRobot extends OpMode {
         rightFrontDriveMotor.setPower(-rightPower);
         rightBackDriveMotor.setPower(-rightPower);
     }
-*/
-    public void set_right_servo(double pos) {
-        double position = Range.clip(pos, 0, 1.0);
-        right_servo.setPosition(position);
-    }
 
-    public void set_left_servo(double pos) {
-        double position = Range.clip(pos, 0, 1.0);
-        left_servo.setPosition(position);
-    }
+//    public void set_right_servo(double pos) {
+//        double position = Range.clip(pos, 0, 1.0);
+//        right_servo.setPosition(position);
+//    }
+//
+//    public void set_left_servo(double pos) {
+//        double position = Range.clip(pos, 0, 1.0);
+//        left_servo.setPosition(position);
+//    }
 
 
     public void reset_drive_encoders() {
@@ -229,11 +235,11 @@ public class BaseRobot extends OpMode {
         rightBackDriveMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-   public void reset_armLiftMotor_encoders() {
-        armLiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        armLiftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }
-
+//   public void reset_armLiftMotor_encoders() {
+//        armLiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        armLiftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//    }
+//
     public int get_left_front_drive_motor_enc() {
         if (leftFrontDriveMotor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
             leftFrontDriveMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -267,31 +273,30 @@ public class BaseRobot extends OpMode {
         return rightBackDriveMotor.getCurrentPosition();
     }
 
-    public int get_armLiftMotor_enc() {
-        if (armLiftMotor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
-            armLiftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
-        return armLiftMotor.getCurrentPosition();
-    }
-/*
-    public int get_armLiftMotor2_enc() {
-        if (armLiftMotor2.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
-            armLiftMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
-        return armLiftMotor2.getCurrentPosition();
-    }
+//    public int get_armLiftMotor_enc() {
+//        if (armLiftMotor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
+//            armLiftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        }
+//        return armLiftMotor.getCurrentPosition();
+//    }
 
-    public int get_armClampMotor_enc() {
-        if (armClampMotor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
-            armClampMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
-        return armClampMotor.getCurrentPosition();
-    }
-    public void reset_armClampMotor_encoders() {
-        armClampMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        armClampMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }
-*/
+//    public int get_armLiftMotor2_enc() {
+//        if (armLiftMotor2.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
+//            armLiftMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        }
+//        return armLiftMotor2.getCurrentPosition();
+//    }
+//
+//    public int get_armClampMotor_enc() {
+//        if (armClampMotor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
+//            armClampMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        }
+//        return armClampMotor.getCurrentPosition();
+//    }
+//    public void reset_armClampMotor_encoders() {
+//        armClampMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        armClampMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//    }
 
 }
 
