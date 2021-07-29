@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
-import org.firstinspires.ftc.teamcode.PixyWorking.PixyCam;
 
 //Created by Chun on 1/26/19 for 10023. Adapted by Ben Co 2021.
 
@@ -19,7 +18,6 @@ public class BaseRobot extends OpMode {
     public DcMotor leftBackDriveMotor, rightBackDriveMotor, leftFrontDriveMotor, rightFrontDriveMotor, armLiftMotor; //armLiftMotor2, armClampMotor;
 //    public Servo right_servo, left_servo;
     public ElapsedTime timer = new ElapsedTime();
-    PixyCam pixyCam;
 
     @Override
     public void init() {
@@ -27,7 +25,6 @@ public class BaseRobot extends OpMode {
         rightBackDriveMotor = hardwareMap.get(DcMotor.class, "rightBackDriveMotor");
         leftFrontDriveMotor = hardwareMap.get(DcMotor.class, "leftFrontDriveMotor");
         rightFrontDriveMotor = hardwareMap.get(DcMotor.class, "rightFrontDriveMotor");
-        pixyCam = hardwareMap.get(PixyCam.class, "pixycam");
 
 //        armLiftMotor = hardwareMap.get(DcMotor.class, "armLiftMotor");
         /*armLiftMotor2 = hardwareMap.get(DcMotor.class, "armLiftMotor2");

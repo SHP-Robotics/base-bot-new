@@ -17,14 +17,12 @@ import java.io.UnsupportedEncodingException;
 @Autonomous
 
 public class  RightTestBlocksAutonomous extends BaseRobot {
-    PixyCam pixycam;
+    PixyCam pixyCam;
     public static PixyBlockList blocks1;
 
     private int stage = 0;
     PrintWriter file;
     ElapsedTime elapsedTime3 = new ElapsedTime();
-    blocks1 = pixyCam.getBiggestBlocks(1);
-
 
     @Override
     public void init() {
@@ -65,6 +63,7 @@ public class  RightTestBlocksAutonomous extends BaseRobot {
         }
         boolean isObjectRight;
         boolean isObjectLeft;
+        biggestBlock = blocks1.get(0);
         int X = biggestBlock.x;
         int Y = biggestBlock.y;
         telemetry.addData("x: ", X);
@@ -94,7 +93,7 @@ public class  RightTestBlocksAutonomous extends BaseRobot {
                 break;
             //mecanum until Pixy Sees Blocks
             case 1:
-                if
+                if(true)
                {
                     reset_drive_encoders();
                     stage++;

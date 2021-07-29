@@ -14,6 +14,7 @@ import java.io.UnsupportedEncodingException;
 @TeleOp
 
 public class OurTeleOpUndeclared extends BaseRobot {
+    PixyCam pixyCam;
 
     public static PixyBlockList blocks1;
     PixyBlockList blocks2;
