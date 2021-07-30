@@ -16,7 +16,7 @@ import java.io.UnsupportedEncodingException;
 
 @Autonomous
 
-public class  RightTestBlocksAutonomous extends BaseRobot {
+public class DriveToBlockAuto extends BaseRobot {
     PixyCam pixyCam;
     public static PixyBlockList blocks1;
 
