@@ -14,12 +14,11 @@ import org.firstinspires.ftc.teamcode.PixyWorking.PixyCam;
 
 public class DriveToObject extends BaseRobot {
     ElapsedTime timer = new ElapsedTime();
-
-    PixyCam pixyCam;
-    PixyBlockList blocks1;
-
     private int stage = 0;
-    ElapsedTime elapsedTime3 = new ElapsedTime();
+
+    boolean objectFound = false;
+    boolean objectCentered = false;
+    boolean objectClose = false;
 
     @Override
     public void init() {
@@ -35,35 +34,29 @@ public class DriveToObject extends BaseRobot {
     public void loop() {
         super.loop();
 
-        blocks1 = pixyCam.getBiggestBlocks(1);
-
-        PixyBlock biggestBlock = blocks1.get(0);
+        PixyBlock biggestBlock = pixyCam.getBiggestBlock();
 
         int X = biggestBlock.x;
         int Y = biggestBlock.y;
         int width = biggestBlock.width;
         int height = biggestBlock.height;
 
-        double direction = 1.0;
-        boolean objectFound = false;
-        boolean objectCentered = false;
-        boolean objectClose = false; // need to test and implement this
 
-        telemetry.addData("x: ", X);
-        telemetry.addData("y: ", Y);
-        telemetry.addData("width: ", width);
-        telemetry.addData("height: ", height);
-        telemetry.update();
+        double direction = 0.1;
 
         if (X <= 160 && X > 0) {
-            direction = -1.0;
+            direction = -direction;
             objectFound = true;
-        } else if (X >= 160 && X < 0) {
+        } else if (X >= 160 && X < 320) {
             objectFound = true;
         }
 
-        if (X >= 140 && X <= 180) {
+        if (X >= 120 && X <= 200) {
             objectCentered = true;
+        }
+
+        if (width > 200) {
+            objectClose = true;
         }
 
         if (X > 320 && X < 0) {
@@ -73,30 +66,73 @@ public class DriveToObject extends BaseRobot {
             stage = 0;
         }
 
+        telemetry.addData("x: ", X);
+        telemetry.addData("y: ", Y);
+        telemetry.addData("width: ", width);
+        telemetry.addData("height: ", height);
+        telemetry.addData("found: ", objectFound);
+        telemetry.addData("centered: ", objectCentered);
+        telemetry.addData("close: ", objectClose);
+        telemetry.addData("stage: ", stage);
+        telemetry.update();
+
         switch (stage) {
 
             // turn until Pixy Sees Blocks
             case 0:
-                if (objectFound) {
-                    reset_drive_encoders();
-                    stage++;
-                } else auto_turn(direction, 1);
+//                if (timer.seconds() > 1) {
+                stage++;
+//                }
+//                if (objectFound) {
+//                    timer.reset();
+//                    if (timer.seconds() > 5) {
+//                        reset_drive_encoders();
+//                        stage++;
+//                    }
+//                } else auto_turn(direction, 1);
                 break;
 
             // turn until centered
             case 1:
                 if (objectCentered) {
-                    reset_drive_encoders();
+                    leftFrontDriveMotor.setPower(0);
+                    leftBackDriveMotor.setPower(0);
+                    rightFrontDriveMotor.setPower(0);
+                    rightBackDriveMotor.setPower(0);
+                    timer.reset();
                     stage++;
-                } else auto_turn(direction, 1);
+                } else {
+                    if (objectFound) {
+                        leftFrontDriveMotor.setPower(-direction);
+                        leftBackDriveMotor.setPower(-direction);
+                        rightFrontDriveMotor.setPower(-direction);
+                        rightBackDriveMotor.setPower(-direction);
+                    }
+                }
                 break;
 
             // move forward until block is close
             case 2:
-                if (objectClose) {
-                    reset_drive_encoders();
-                    stage++;
-                } // else move forward
+                if (timer.seconds() > 3) {
+                    if (objectClose) {
+                        leftFrontDriveMotor.setPower(0);
+                        leftBackDriveMotor.setPower(0);
+                        rightFrontDriveMotor.setPower(0);
+                        rightBackDriveMotor.setPower(0);
+                        stage++;
+                    } else {
+                        if (objectFound) {
+                            leftFrontDriveMotor.setPower(-0.1);
+                            leftBackDriveMotor.setPower(-0.1);
+                            rightFrontDriveMotor.setPower(0.1);
+                            rightBackDriveMotor.setPower(0.1);
+                        }
+                    }// else move forward
+                }
+
+                break;
+            case 3:
+                auto_drive(0, 0);
                 break;
             //backup
 //            case 3:
