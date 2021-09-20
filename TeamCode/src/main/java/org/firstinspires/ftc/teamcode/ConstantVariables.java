@@ -29,8 +29,8 @@ public class ConstantVariables {
     public static final int PIXY_DEFAULT_ARGVAL = 0xffff;
 
     // Pixy x-y position values
-    public static final long PIXY_MIN_X = 0L;   //x: 0~319 pixels, y:0~199 pixels. (0,0) starts at bottom left
-    public static final long PIXY_MAX_X = 319L;
+    public static final long PIXY_MIN_X = 0L;   //x: 0~255 pixels, y:0~199 pixels. (0,0) starts at bottom left
+    public static final long PIXY_MAX_X = 255L;
     public static final long PIXY_MIN_Y = 0L;
     public static final long PIXY_MAX_Y = 199L;
 }

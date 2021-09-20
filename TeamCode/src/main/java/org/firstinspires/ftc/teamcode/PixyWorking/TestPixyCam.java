@@ -12,16 +12,14 @@ import java.io.UnsupportedEncodingException;
  * Source code brought in from:
  * https://github.com/Overlake-FTC-7330-2017/ftc_app/blob/TeamCode/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/testing/TestPixyCam.java
  * on 2017-10-19
+ * in order for this to work, FTC pixy firmware must be installed on pixy cam
  */
 
 @TeleOp(name = "TestPixyCam", group = "Testing")
 public class TestPixyCam extends OpMode {
     PixyCam pixyCam;
     PixyBlockList blocks1;
-    PixyBlockList blocks2;
-    PixyBlockList blocks3;
     ElapsedTime elapsedTime = new ElapsedTime();
-    ElapsedTime elapsedTime2 = new ElapsedTime();
 
     PrintWriter file;
 
@@ -44,6 +42,7 @@ public class TestPixyCam extends OpMode {
     /*
      * This method will be called repeatedly in a loop
      * @see com.qualcomm.robotcore.eventloop.opmode.OpMode#loop()
+     * this gets the blocklist for the largest block on screen
      */
     @Override
     public void loop() {
@@ -60,6 +59,7 @@ public class TestPixyCam extends OpMode {
                 PixyBlock block = blocks1.get(i);
                 if (!block.isEmpty()) {
                     telemetry.addData("Block 1[" + i + "]", block.toString());
+
                 }
             }
 //            for (int i = 0; i < blocks2.size(); i++) {

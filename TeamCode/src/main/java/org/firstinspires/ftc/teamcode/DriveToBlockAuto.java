@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.PixyWorking.PixyBlock;
-import org.firstinspires.ftc.teamcode.PixyWorking.PixyBlockList;
 import org.firstinspires.ftc.teamcode.PixyWorking.PixyCam;
 
 import java.io.FileNotFoundException;
@@ -16,17 +15,23 @@ import java.io.UnsupportedEncodingException;
 
 @Autonomous
 
-public class  RightTestBlocksAutonomous extends BaseRobot {
+public class  DriveToBlockAuto extends BaseRobot {
     PixyCam pixyCam;
-    public static PixyBlockList blocks1;
+    public static PixyBlock blocks1;
+    public final int pixyBlockCenterTolerance = 20; //in pixels and should be even
+    public final int rightPixelStartBoundry = 159+(pixyBlockCenterTolerance/2);
+    public final int leftPixelStartBoundry = 159-(pixyBlockCenterTolerance/2);
 
+    boolean isObjectRight;
+    boolean isObjectLeft;
+    double xCord;
     private int stage = 0;
     PrintWriter file;
-    ElapsedTime elapsedTime3 = new ElapsedTime();
+    ElapsedTime elapsedTime = new ElapsedTime();
 
     @Override
     public void init() {
-
+        pixyCam = hardwareMap.get(PixyCam.class, "pixycam");
         try {
             file = new PrintWriter("/sdcard/pixyResults.txt", "UTF-8");
         } catch (FileNotFoundException e) {
@@ -44,41 +49,23 @@ public class  RightTestBlocksAutonomous extends BaseRobot {
 
     @Override
     public void loop() {
-        PixyBlock biggestBlock;
 
+        if (elapsedTime.milliseconds() > 100) { //check every tenth of a second
+            elapsedTime.reset();
+            blocks1 = pixyCam.getBiggestBlock(1);
+            xCord = blocks1.x;
+            if (xCord > 0 && xCord >= rightPixelStartBoundry) {
+                isObjectRight = true;
+            } else if (xCord > 0 && xCord < leftPixelStartBoundry) {
+                isObjectLeft = true;
 
-        if (elapsedTime3.milliseconds() > 100) {
-            elapsedTime3.reset();
-            blocks1 = pixyCam.getBiggestBlocks(1);
-//            telemetry.addData("Counts", "%d", blocks1.totalCount);
-//            file.println("----------------------------");
-//            for (int i = 0; i < blocks1.size(); i++) {
-//                PixyBlock block = blocks1.get(i);
-//                if (!block.isEmpty()) {
-//                    telemetry.addData("Block 1[" + i + "]", block.toString());
-//                }
-//            }
-            biggestBlock = blocks1.get(0);
+            } else {
+
+            }
+            telemetry.addData("x: ", xCord);
+            telemetry.update();
             super.loop();
         }
-        boolean isObjectRight;
-        boolean isObjectLeft;
-        biggestBlock = blocks1.get(0);
-        int X = biggestBlock.x;
-        int Y = biggestBlock.y;
-        telemetry.addData("x: ", X);
-        telemetry.update();
-
-        if (X >= 160) {
-            isObjectRight = true;
-            isObjectLeft = false;
-        } else if (X < 160) {
-            isObjectRight = false;
-            isObjectLeft = true;
-        } else if (X > 320 && X < 0) {
-            throw new IllegalArgumentException("X Coordinate not between 0 and 320 pixels");
-        }
-
 
         super.loop();
         switch (stage) {
@@ -91,14 +78,20 @@ public class  RightTestBlocksAutonomous extends BaseRobot {
                     stage++;
                 }
                 break;
-            //mecanum until Pixy Sees Blocks
+            //center robot with block using pixy
             case 1:
-                if(true)
-               {
+                if (blocks1.isEmpty() == false) {
+                    while (isObjectLeft) {
+                        auto_mecanum(0.3, 1); //drive one inch at atime to while it is left
+                    }
+                    while (isObjectRight) {
+                        auto_mecanum(-0.3, 1);
+                    }
                     reset_drive_encoders();
                     stage++;
+                } else {
+                    stage++;
                 }
-                else auto_mecanum(0.3, 46);
 
                 break;
             //mecanum to center robot
@@ -118,95 +111,8 @@ public class  RightTestBlocksAutonomous extends BaseRobot {
                 }
                 break;
             //backup
-            case 4:
-                if (timer.seconds() >= 0.2) {
-                    if (auto_drive(-0.4, 9)) {
-                        reset_drive_encoders();
-                        stage++;
-                    }
-                }
-                break;
-            //turn to face other side of field
-            case 5:
-                if (auto_turn(-1, 90)) {
-                    reset_drive_encoders();
-                    stage++;
-                }
-                break;
-            //drive accross bridge and drop block
-            case 6:
-                if (auto_drive(1, 48)) {
-//                    setArmClampMotor(-1);
-                    reset_drive_encoders();
-                    timer.reset();
-                    stage++;
-                }
-                break;
-            //fold arm motor and backup to other side of field to get 2nd block
-            case 7:
-                if (timer.seconds() > 1) {
-                    if (auto_drive(-1, 69)) {
-//                        setArmClampMotor(0);
-                        reset_drive_encoders();
-                        timer.reset();
-                        stage++;
-                    }
-                }
-                break;
-            //turn to face blocks
-            case 8:
-                if (auto_turn(1, 70)) {
-                    reset_drive_encoders();
-                    timer.reset();
-                    stage++;
-                }
-                break;
-            //go forward towards second block and grab it
-            case 9:
-                if(timer.seconds() > 0.5) {
-                    if (auto_drive(1, 26)) {
-//                        setArmClampMotor(1);
-                        reset_drive_encoders();
-                        timer.reset();
-                        stage++;
-                    }
-                }
-                break;
-            //backup
-            case 10:
-                if(timer.seconds() >1) {
-                    if (auto_drive(-0.9, 27)) {
-                        reset_drive_encoders();
-                        timer.reset();
-                        stage++;
-                    }
-                }
-                break;
-            //face bridge
-            case 11:
-                if (auto_turn(-1, 135)) {
-                    reset_drive_encoders();
-                    timer.reset();
-                    stage++;
-                }
-                break;
-            //drive accross and drop block
-            case 12:
-                if(auto_drive(1,60)){
-//                    setArmClampMotor(-1);
-                    reset_drive_encoders();
-                    stage++;
-                }
-                break;
-            //park under bridge
-            case 13: if(auto_drive(-1,12))    {
-                reset_drive_encoders();
-                stage++;
-            }
-            default:
-                break;
-
         }
+
 
     }
 
