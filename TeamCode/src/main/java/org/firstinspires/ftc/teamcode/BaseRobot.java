@@ -26,12 +26,6 @@ public class BaseRobot extends OpMode {
         leftFrontDriveMotor = hardwareMap.get(DcMotor.class, "leftFrontDriveMotor");
         rightFrontDriveMotor = hardwareMap.get(DcMotor.class, "rightFrontDriveMotor");
 
-//        armLiftMotor = hardwareMap.get(DcMotor.class, "armLiftMotor");
-        /*armLiftMotor2 = hardwareMap.get(DcMotor.class, "armLiftMotor2");
-        armClampMotor = hardwareMap.get(DcMotor.class, "armClampMotor");*/
-//        colorBlock = hardwareMap.get(ColorSensor.class, "colorSensorBlock");
-//        right_servo = hardwareMap.get(Servo.class,"right_servo");
-//        left_servo= hardwareMap.get(Servo.class,"left_servo");
     }
 
 
@@ -39,16 +33,13 @@ public class BaseRobot extends OpMode {
     public void start() {
         timer.reset();
         reset_drive_encoders();
-//        reset_armLiftMotor_encoders();
-//        reset_armLiftMotor2_encoders();
-//        colorBlock.enableLed(true);
+
     }
 
     public void stop() {
         timer.reset();
         reset_drive_encoders();
-//        reset_armLiftMotor_encoders();
-//        reset_armLiftMotor2_encoders();
+
     }
 
     @Override
@@ -57,128 +48,206 @@ public class BaseRobot extends OpMode {
         telemetry.addData("D01 Right Front Drive Motor Enc: ", get_right_front_drive_motor_enc());
         telemetry.addData("D02 Left Back Drive Motor Enc: ", get_left_back_drive_motor_enc());
         telemetry.addData("D03 Right Back Drive Motor Enc: ", get_right_back_drive_motor_enc());
-
-//
-//        telemetry.addData("D04 Arm Lift Motor Enc: ", get_armLiftMotor_enc());
-//        telemetry.addData("D05 Arm Lift Motor 2 Enc: ", get_armLiftMotor2_enc());
-//        telemetry.addData("D010 Arm Clamp Motor Enc: ", get_armClampMotor_enc());
-
     }
 
-//    public void setArmLiftMotor(double power) {
-//        double speed = Range.clip(power, -1, 1);
-//        armLiftMotor.setPower(speed);
-//    }
-/*
-    public void setArmLiftMotor2(double power) {
-        double speed = Range.clip(power, -1, 1);
-        armLiftMotor2.setPower(speed);
+    //left front power, left back power, right front power, right back power
+    public void drive(double lf, double lb, double rf, double rb) {
+        lf = Range.clip(lf, -1, 1);
+        lb = Range.clip(lb, -1, 1);
+        rf = Range.clip(rf, -1, 1);
+        rb = Range.clip(rb, -1, 1);
 
+        leftFrontDriveMotor.setPower(lf);
+        leftBackDriveMotor.setPower(lb);
+        rightFrontDriveMotor.setPower(rf);
+        rightBackDriveMotor.setPower(rb);
     }
+    /**
+     * @param desiredHeading: the heading to turn to.
+     * @param currentHeading: the current imu heading. (angles.firstAngle)
+     * @return Whether the target angle has been reached.
+     */
+    public boolean auto_turn_imu(float desiredHeading, float currentHeading) {
+        float difference;
+//        if (currentHeading < 0)
+//            currentHeading = 180 + Math.abs(currentHeading);
+        if (currentHeading <= -90 && desiredHeading >= 90)
+            difference = desiredHeading - (360+currentHeading);
+        else if (currentHeading >= 90 && desiredHeading <= -90)
+            difference = desiredHeading + (360-currentHeading);
+        else
+            difference = desiredHeading - currentHeading;
 
-    public void setArmClampMotor(double power) {
-        double speed = Range.clip(power, -1, 1);
-        armClampMotor.setPower(speed);
-
-    }*/
-
-//    public boolean checkBlackColor(int red, int blue) {
-//        return blue > (3.0/4)*red;
-//    }
-
-//    public boolean checkGreenColor(int green, int blue, int red) {
-//        if (green > blue + red){
-//            return true;
-//        } else return false;
-//    }
-
-//    public boolean checkBlueColor(int green, int blue, int red) {
-//        if (blue > green + red){
-//            return true;
-//        } else return false;
-//    }
-
-//    public boolean checkRedColor(int green, int blue, int red) {
-//        if (red > blue + green){
-//            return true;
-//        } else return false;
-//    }
-
-    public boolean auto_drive(double power, double inches) {
-        double TARGET_ENC = ConstantVariables.K_PPIN_DRIVE * inches;
-        telemetry.addData("Target_enc: ", TARGET_ENC);
-        double left_speed = -power;
-        double right_speed = power;
-        double error = -get_left_front_drive_motor_enc() - get_right_front_drive_motor_enc();
-
-        error /= ConstantVariables.K_DRIVE_ERROR_P;
-        left_speed += error;
-        right_speed -= error;
-
-        left_speed = Range.clip(left_speed, -1, 1);
-        right_speed = Range.clip(right_speed, -1, 1);
-        leftFrontDriveMotor.setPower(left_speed);
-        leftBackDriveMotor.setPower(left_speed);
-        rightFrontDriveMotor.setPower(right_speed);
-        rightBackDriveMotor.setPower(right_speed);
-
-        if (Math.abs(get_right_front_drive_motor_enc()) >= TARGET_ENC) {
-            leftFrontDriveMotor.setPower(0);
-            leftBackDriveMotor.setPower(0);
-            rightFrontDriveMotor.setPower(0);
-            rightBackDriveMotor.setPower(0);
+        if (Math.abs(difference) < 15) {//5
+            drive(0,0,0,0);
             return true;
+        } else {
+            if (difference<0) {
+                difference -= 20;
+            } else {
+                difference += 20;
+            }
+            float speed = Range.clip(difference/120, -1, 1); //diff/120
+            drive(speed, speed, speed, speed);
+            return false;
         }
-        return false;
     }
 
     /**
-     * @param power:   the speed to turn at. Negative for left.
+     * @param power:   the speed to turn at.
      * @param degrees: the number of degrees to turn.
+     * @param side:    the side of the drivetrain that moves. 1 for right, -1 for left.
      * @return Whether the target angle has been reached.
      */
-    public boolean auto_turn(double power, double degrees) {
-        double TARGET_ENC = Math.abs(ConstantVariables.K_PPDEG_DRIVE * degrees);
+    public boolean auto_side(double power, double degrees, int side) {
+        double TARGET_ENC = Math.abs(ConstantVariables.K_CPDEG_DRIVE * degrees);
         telemetry.addData("D99 TURNING TO ENC: ", TARGET_ENC);
 
         double speed = Range.clip(power, -1, 1);
-        leftFrontDriveMotor.setPower(-speed);
-        leftBackDriveMotor.setPower(-speed);
-        rightFrontDriveMotor.setPower(-speed);
-        rightBackDriveMotor.setPower(-speed);
+        if (Math.abs(get_motor_enc(leftFrontDriveMotor))/ConstantVariables.K_CPDEG_DRIVE >= degrees-20 ||
+                Math.abs(get_motor_enc(rightFrontDriveMotor))/ConstantVariables.K_CPDEG_DRIVE >= degrees-20) {
+            speed /= 2;
+        }
 
-        if (Math.abs(get_right_front_drive_motor_enc()) >= TARGET_ENC) {
-            leftFrontDriveMotor.setPower(0);
-            leftBackDriveMotor.setPower(0);
-            rightFrontDriveMotor.setPower(0);
-            rightBackDriveMotor.setPower(0);
+        if (side == 1) {
+            drive(0,0,speed,speed);
+        } else if (side == -1) {
+            drive(-speed,-speed,0,0);
+        }
+
+        if (Math.abs(get_motor_enc(leftFrontDriveMotor)) >= TARGET_ENC || Math.abs(get_motor_enc(rightFrontDriveMotor)) >= TARGET_ENC) {
+            drive(0,0,0,0);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    /**
+     * @param power:   the speed to drive at. Negative for reverse.
+     * @param inches:  the distance to drive.
+     * @param desiredHeading:  the desired angle.
+     * @param currentHeading:  the current angle. (angles.firstAngle)
+     * @return Whether the target distance has been reached.
+     */
+
+    public boolean auto_drive_imu(double power, double inches, float desiredHeading, float currentHeading) {
+        double TARGET_ENC = ConstantVariables.K_CPIN_DRIVE * inches;
+        telemetry.addData("Target_enc: ", TARGET_ENC);
+        double speed = power;
+        if (Math.abs(get_motor_enc(leftFrontDriveMotor))/ConstantVariables.K_CPIN_DRIVE >= inches - 5 ||
+                Math.abs(get_motor_enc(rightFrontDriveMotor))/ConstantVariables.K_CPIN_DRIVE >= inches - 5) {
+            speed /= 2;
+        }
+
+        float difference;
+        if (currentHeading <= -90 && desiredHeading >= 90)
+            difference = desiredHeading - (360+currentHeading);
+        else if (currentHeading >= 90 && desiredHeading <= -90)
+            difference = desiredHeading + (360-currentHeading);
+        else
+            difference = desiredHeading - currentHeading;
+
+        double left_speed = speed - (difference/100);
+        double right_speed = speed + (difference/100);
+
+        left_speed *= -1; //left motors turn opposite directions
+
+        left_speed = Range.clip(left_speed, -1, 1);
+        right_speed = Range.clip(right_speed, -1, 1);
+
+        drive(left_speed, left_speed, right_speed, right_speed);
+
+        if (Math.abs(get_motor_enc(leftFrontDriveMotor)) >= TARGET_ENC || Math.abs(get_motor_enc(rightFrontDriveMotor)) >= TARGET_ENC) {
+            drive(0,0,0,0);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public boolean auto_drive(double power, double inches) {
+        double TARGET_ENC = ConstantVariables.K_CPIN_DRIVE * inches;
+        telemetry.addData("Target_enc: ", TARGET_ENC);
+        double speed = power;
+        if (Math.abs(get_motor_enc(leftFrontDriveMotor))/ConstantVariables.K_CPIN_DRIVE >= inches - 5 ||
+                Math.abs(get_motor_enc(rightFrontDriveMotor))/ConstantVariables.K_CPIN_DRIVE >= inches - 5) {
+            speed /= 2;
+        }
+
+        double left_speed = speed;
+        double right_speed = speed;
+
+        //double error = get_motor_enc(rightFrontDriveMotor) + get_motor_enc(leftFrontDriveMotor);
+        //positive means right turned more, negative means left turned more
+
+        //error /= ConstantVariables.K_DRIVE_ERROR_P;
+        //left_speed += error;
+        //right_speed -= error;
+
+        left_speed *= -1; //left motors turn opposite directions
+
+
+        left_speed = Range.clip(left_speed, -1, 1);
+        right_speed = Range.clip(right_speed, -1, 1);
+
+        drive(left_speed, left_speed, right_speed, right_speed);
+
+        if (Math.abs(get_motor_enc(leftFrontDriveMotor)) >= TARGET_ENC || Math.abs(get_motor_enc(rightFrontDriveMotor)) >= TARGET_ENC) {
+            drive(0,0,0,0);
             return true;
         } else {
             return false;
         }
     }
 
-//    positive for right, negative for left
+    /**
+     * @param power:   the speed to turn at. Positive for right, negative for left.
+     * @param degrees: the number of degrees to turn.
+     * @return Whether the target angle has been reached.
+     */
+    public boolean auto_turn(double power, double degrees) {
+        double TARGET_ENC = Math.abs(ConstantVariables.K_CPDEG_DRIVE * degrees);
+        telemetry.addData("D99 TURNING TO ENC: ", TARGET_ENC);
+
+        double speed = Range.clip(power, -1, 1);
+        if (Math.abs(get_motor_enc(leftFrontDriveMotor))/ConstantVariables.K_CPDEG_DRIVE >= degrees-20 ||
+                Math.abs(get_motor_enc(rightFrontDriveMotor))/ConstantVariables.K_CPDEG_DRIVE >= degrees-20) {
+            speed /= 2;
+        }
+
+        drive(-speed, -speed, -speed, -speed);
+
+        if (Math.abs(get_motor_enc(leftFrontDriveMotor)) >= TARGET_ENC || Math.abs(get_motor_enc(rightFrontDriveMotor)) >= TARGET_ENC) {
+            drive(0,0,0,0);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param power:   the speed to drive at. Positive for right, negative for left.
+     * @param inches:  the distance to drive.
+     * @return Whether the target distance has been reached.
+     * updated to chuns code
+     */
     public boolean auto_mecanum(double power, double inches) {
-        double TARGET_ENC = ConstantVariables.K_PPIN_DRIVE * inches;
+        double TARGET_ENC = ConstantVariables.K_CPIN_DRIVE * inches * 1.414;
         telemetry.addData("Target_enc: ", TARGET_ENC);
+        double speed = power;
+        if (Math.abs(get_motor_enc(leftFrontDriveMotor))/ConstantVariables.K_CPIN_DRIVE >= inches - 3 ||
+                Math.abs(get_motor_enc(rightFrontDriveMotor))/ConstantVariables.K_CPIN_DRIVE >= inches - 3) {
+            speed /= 2;
+        }
 
-        double leftFrontPower = Range.clip(0 - power, -1.0, 1.0);
-        double leftBackPower = Range.clip(0 + power, -1.0, 1.0);
-        double rightFrontPower = Range.clip(0 - power, -1.0, 1.0);
-        double rightBackPower = Range.clip(0 + power, -1.0, 1.0);
+        double leftFrontPower = Range.clip(0 - speed, -1.0, 1.0);
+        double leftBackPower = Range.clip(0 + speed, -1.0, 1.0);
+        double rightFrontPower = Range.clip(0 - speed, -1.0, 1.0);
+        double rightBackPower = Range.clip(0 + speed, -1.0, 1.0);
 
-        leftFrontDriveMotor.setPower(leftFrontPower);
-        leftBackDriveMotor.setPower(leftBackPower);
-        rightFrontDriveMotor.setPower(rightFrontPower);
-        rightBackDriveMotor.setPower(rightBackPower);
+        drive(leftFrontPower,leftBackPower,rightFrontPower,rightBackPower);
 
-//         once you have reached destination, kill motors and return true
-        if (Math.abs(get_right_front_drive_motor_enc()) >= TARGET_ENC) {
-            leftFrontDriveMotor.setPower(0);
-            leftBackDriveMotor.setPower(0);
-            rightFrontDriveMotor.setPower(0);
-            rightBackDriveMotor.setPower(0);
+        if (Math.abs(get_motor_enc(leftFrontDriveMotor)) >= TARGET_ENC || Math.abs(get_motor_enc(rightFrontDriveMotor)) >= TARGET_ENC) {
+            drive(0,0,0,0);
             return true;
         } else {
             return false;
@@ -209,15 +278,6 @@ public class BaseRobot extends OpMode {
         rightBackDriveMotor.setPower(-rightPower);
     }
 
-//    public void set_right_servo(double pos) {
-//        double position = Range.clip(pos, 0, 1.0);
-//        right_servo.setPosition(position);
-//    }
-//
-//    public void set_left_servo(double pos) {
-//        double position = Range.clip(pos, 0, 1.0);
-//        left_servo.setPosition(position);
-//    }
 
 
     public void reset_drive_encoders() {
@@ -232,11 +292,13 @@ public class BaseRobot extends OpMode {
         rightBackDriveMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-//   public void reset_armLiftMotor_encoders() {
-//        armLiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        armLiftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//    }
-//
+    public int get_motor_enc(DcMotor motor) {
+        if (motor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
+            motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+        return motor.getCurrentPosition();
+    }
+
     public int get_left_front_drive_motor_enc() {
         if (leftFrontDriveMotor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
             leftFrontDriveMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -251,10 +313,6 @@ public class BaseRobot extends OpMode {
         return rightFrontDriveMotor.getCurrentPosition();
     }
 
-    /*public void reset_armLiftMotor2_encoders() {
-        armLiftMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        armLiftMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }*/
 
     public int get_left_back_drive_motor_enc() {
         if (leftBackDriveMotor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
@@ -270,30 +328,6 @@ public class BaseRobot extends OpMode {
         return rightBackDriveMotor.getCurrentPosition();
     }
 
-//    public int get_armLiftMotor_enc() {
-//        if (armLiftMotor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
-//            armLiftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        }
-//        return armLiftMotor.getCurrentPosition();
-//    }
-
-//    public int get_armLiftMotor2_enc() {
-//        if (armLiftMotor2.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
-//            armLiftMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        }
-//        return armLiftMotor2.getCurrentPosition();
-//    }
-//
-//    public int get_armClampMotor_enc() {
-//        if (armClampMotor.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
-//            armClampMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        }
-//        return armClampMotor.getCurrentPosition();
-//    }
-//    public void reset_armClampMotor_encoders() {
-//        armClampMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        armClampMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//    }
 
 }
 

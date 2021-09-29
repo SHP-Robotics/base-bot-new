@@ -33,35 +33,27 @@ public class PixyIdentDuck extends OpMode {
      */
     @Override
     public void loop() {
-        // Update every tenth of a second.
-        if (elapsedTime.milliseconds() > 100) {
-            elapsedTime.reset();
-            duck = pixyCam.getBiggestBlock(1); //duck is the biggest block pixy cam found for signature 1 (as trained)
-            if (duck.isEmpty()) { //check to see if pixy found a block
-                location = -1; //returns -1 if no duck found
-            } else {
-                location = getLocation(duck.x);
-            }
-            telemetry.addData("DuckLocation | -1 = Not found", location);
-            telemetry.update();
+        duck = pixyCam.getBiggestBlock(1); //duck is the biggest block pixy cam found for signature 1 (as trained)
+        if (duck.isEmpty()) { //check to see if pixy found a block
+            location = -1; //returns -1 if no duck found
+        } else {
+            location = getLocation(duck.x);
         }
 
+        telemetry.addData("DuckLocation | -1 = Not found", location);
+        telemetry.update();
     }
 
-public int getLocation (int xCord){
-    if (xCord < ConstantVariables.PIXY_MAX_X / 3)
-        return 1;
-    else if (xCord >= ConstantVariables.PIXY_MAX_X / 3 && xCord < ((ConstantVariables.PIXY_MAX_X / 3) * 2)) {
-        return 2;
-    } else if (xCord >= ((ConstantVariables.PIXY_MAX_X) * 2) && xCord < ConstantVariables.PIXY_MAX_X) {
-        return 3;
-    } else {
-        return -1; //if it cant figure it out just return -1
-    }
-}
-
-    @Override
-    public void stop() {
+    public int getLocation(int xCord) {
+        if (xCord < ConstantVariables.PIXY_MAX_X / 3)
+            return 1;
+        else if (xCord >= ConstantVariables.PIXY_MAX_X / 3 && xCord < ((ConstantVariables.PIXY_MAX_X / 3) * 2)) {
+            return 2;
+        } else if (xCord >= ((ConstantVariables.PIXY_MAX_X/3) * 2) && xCord < ConstantVariables.PIXY_MAX_X) {
+            return 3;
+        } else {
+            return -1; //if it cant figure it out just return -1
+        }
     }
 }
 

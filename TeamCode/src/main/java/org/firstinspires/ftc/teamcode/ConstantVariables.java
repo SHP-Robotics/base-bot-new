@@ -6,16 +6,20 @@ package org.firstinspires.ftc.teamcode;
 
 public class ConstantVariables {
 
-    public static final int K_PPR_DRIVE = 1120;
+    public static final int K_CPR_DRIVE = 560; //1120
     public static final double K_DRIVE_WHEEL_DIA = 4;
-    public static final double K_DRIVE_DIA = 16.5;//Dont know what this is.
+    public static final double K_DRIVE_WIDTH = 16.5;
+    public static final double K_DRIVE_HEIGHT = 11.5;
+    public static final double K_DRIVE_DIA = Math.sqrt(Math.pow(K_DRIVE_WIDTH,2) + Math.pow(K_DRIVE_HEIGHT,2));
 
-    public static final double K_DRIVE_WHEEL_CIRCUMFERENCE = K_DRIVE_WHEEL_DIA * Math.PI; //12.56637
-    public static final double K_PPIN_DRIVE = K_PPR_DRIVE / K_DRIVE_WHEEL_CIRCUMFERENCE; //89.1267725
+
+    public static final double K_DRIVE_WHEEL_CIRCUMFERENCE = K_DRIVE_WHEEL_DIA * Math.PI;
+    public static final double K_CPIN_DRIVE = K_CPR_DRIVE / K_DRIVE_WHEEL_CIRCUMFERENCE;
 
     public static final double K_TURN_CIRCUMFERENCE = K_DRIVE_DIA * Math.PI;
-    public static final double K_PPTURN_DRIVE = K_PPIN_DRIVE * K_TURN_CIRCUMFERENCE;
-    public static final double K_PPDEG_DRIVE = K_PPTURN_DRIVE / 360;
+    public static final double K_CPTURN_DRIVE = K_CPIN_DRIVE * K_TURN_CIRCUMFERENCE;
+    public static final double K_CPDEG_DRIVE = K_CPTURN_DRIVE / 360;
+
 
     public static final double K_MAX_CLIBER = 1465;
 
